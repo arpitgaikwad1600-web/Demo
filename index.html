@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>A Special Message for Roseleen</title>
+  
+  <!-- Confetti Library -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Poppins', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    body {
+      background: linear-gradient(-45deg, #ff9a9e, #fecfef, #a1c4fd, #c2e9fb);
+      background-size: 400% 400%;
+      animation: gradientBG 15s ease infinite;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+      position: relative;
+      perspective: 1000px;
+    }
+
+    @keyframes gradientBG {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    /* Floating Background Particles */
+    .bg-hearts {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      z-index: 1;
+      pointer-events: none;
+    }
+
+    .heart-particle {
+      position: absolute;
+      bottom: -100px;
+      font-size: 24px;
+      opacity: 0.8;
+      animation: floatSmooth 9s cubic-bezier(0.25, 1, 0.5, 1) infinite;
+    }
+
+    @keyframes floatSmooth {
+      0% {
+        transform: translateY(0) rotate(0deg) scale(0.8);
+        opacity: 0;
+      }
+      20% {
+        opacity: 0.8;
+      }
+      100% {
+        transform: translateY(-115vh) rotate(360deg) scale(1.2);
+        opacity: 0;
+      }
+    }
+
+    /* Glassmorphism Card */
+    .card-container {
+      background: rgba(255, 255, 255, 0.88);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      padding: 40px 32px;
+      border-radius: 28px;
+      border: 1px solid rgba(255, 255, 255, 0.6);
+      box-shadow: 0 20px 50px rgba(214, 51, 132, 0.15), 
+                  0 10px 20px rgba(0, 0, 0, 0.05);
+      width: 90%;
+      max-width: 480px;
+      text-align: center;
+      z-index: 10;
+      transform-style: preserve-3d;
+      transition: transform 0.2s ease-out, box-shadow 0.3s ease;
+      animation: cardHeartbeat 4s ease-in-out infinite alternate, cardAppear 1.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    @keyframes cardAppear {
+      from { opacity: 0; transform: translateY(40px) scale(0.92); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    @keyframes cardHeartbeat {
+      0% { box-shadow: 0 20px 50px rgba(214, 51, 132, 0.15); }
+      100% { box-shadow: 0 25px 60px rgba(214, 51, 132, 0.3); }
+    }
+
+    h2 {
+      color: #d63384;
+      margin-bottom: 12px;
+      font-weight: 700;
+    }
+
+    p {
+      color: #555;
+      font-size: 1.02rem;
+      line-height: 1.6;
+      margin-bottom: 15px;
+    }
+
+    /* Input Field */
+    .input-wrapper {
+      position: relative;
+      margin: 20px 0;
+    }
+
+    input[type="text"] {
+      width: 100%;
+      padding: 14px 22px;
+      border: 2px solid #ffccd5;
+      border-radius: 30px;
+      font-size: 1rem;
+      outline: none;
+      background: rgba(255, 255, 255, 0.9);
+      transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    input[type="text"]:focus {
+      border-color: #d63384;
+      box-shadow: 0 0 20px rgba(214, 51, 132, 0.25);
+      transform: scale(1.02);
+    }
+
+    /* Buttons */
+    .btn-main {
+      background: linear-gradient(135deg, #ff416c, #ff4b2b);
+      color: white;
+      border: none;
+      padding: 14px 36px;
+      font-size: 1.05rem;
+      font-weight: 600;
+      border-radius: 30px;
+      cursor: pointer;
+      box-shadow: 0 8px 20px rgba(255, 65, 108, 0.35);
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .btn-main:hover {
+      transform: translateY(-3px) scale(1.03);
+      box-shadow: 0 12px 25px rgba(255, 65, 108, 0.5);
+    }
+
+    /* Letter Display Section */
+    .letter {
+      display: none;
+      text-align: left;
+      background: #ffffff;
+      padding: 26px;
+      border-radius: 20px;
+      border-left: 5px solid #d63384;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.04);
+      opacity: 0;
+      transform: translateY(30px);
+      transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .letter.show {
+      display: block;
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .letter-title {
+      font-size: 1.35rem;
+      color: #d63384;
+      margin-bottom: 12px;
+      font-weight: 700;
+    }
+
+    /* Word Reveal */
+    .word {
+      display: inline-block;
+      opacity: 0;
+      transform: translateY(8px);
+      animation: wordFadeIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    @keyframes wordFadeIn {
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .signature {
+      margin-top: 18px;
+      font-weight: 600;
+      color: #d63384;
+      text-align: right;
+      opacity: 0;
+      transform: translateY(10px);
+      transition: all 0.8s ease;
+    }
+
+    .signature.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* Action Buttons */
+    .action-buttons {
+      margin-top: 22px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      opacity: 0;
+      transform: translateY(10px);
+      transition: all 0.8s ease 0.2s;
+    }
+
+    .action-buttons.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .btn-yes {
+      background: #28a745;
+      color: white;
+      border: none;
+      padding: 12px 20px;
+      border-radius: 25px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      text-align: center;
+      box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+      transition: all 0.3s ease;
+    }
+
+    .btn-yes:hover {
+      transform: scale(1.03) translateY(-2px);
+      box-shadow: 0 8px 18px rgba(40, 167, 69, 0.4);
+    }
+
+    .btn-friends {
+      background: #f8f9fa;
+      color: #555;
+      border: 1px solid #ddd;
+      padding: 10px 20px;
+      border-radius: 25px;
+      font-size: 0.9rem;
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.3s ease;
+    }
+
+    .btn-friends:hover {
+      background: #e9ecef;
+      color: #333;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Audio Background -->
+  <audio id="bgMusic" loop src="https://cdn.pixabay.com/download/audio/2022/05/27/audio_1808fbf07a.mp3?filename=lofi-study-112191.mp3"></audio>
+
+  <!-- Floating Hearts Background -->
+  <div class="bg-hearts" id="heartsContainer"></div>
+
+  <!-- Central Card Container -->
+  <div class="card-container" id="mainCard">
+    
+    <!-- Step 1: Question -->
+    <div id="questionStep">
+      <h2>Hii Roseleen! ✨</h2>
+      <p>How are you doing today?</p>
+      <div class="input-wrapper">
+        <input type="text" id="answerBox" placeholder="Type your answer here..." autocomplete="off">
+      </div>
+      <button class="btn-main" onclick="showLetter()">Send Answer ❤️</button>
+    </div>
+
+    <!-- Step 2: Letter -->
+    <div id="letterStep" class="letter">
+      <div class="letter-title">Dear Roseleen,</div>
+      <p id="userResponseDisplay" style="font-size: 0.9rem; color: #888; font-style: italic; margin-bottom: 15px;"></p>
+      
+      <!-- Message Container -->
+      <div id="typedMessage" style="color: #444; line-height: 1.7;"></div>
+
+      <div class="signature" id="signature">🌸 Always supporting you</div>
+
+      <!-- Action Buttons -->
+      <div class="action-buttons" id="actionButtons">
+        <button class="btn-yes" onclick="alert('You made my day! 🥰❤️')">
+          That's really sweet! 😊
+        </button>
+        <button class="btn-friends" onclick="alert('Thank you for being in my life! Always happy to be your friend. ✨😊')">
+          Even if no—let's stay great friends! 🤝
+        </button>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    // 3D Tilt Effect on Mouse Move
+    const card = document.getElementById('mainCard');
+    document.addEventListener('mousemove', (e) => {
+      const xAxis = (window.innerWidth / 2 - e.pageX) / 35;
+      const yAxis = (window.innerHeight / 2 - e.pageY) / 35;
+      card.style.transform = `rotateY(${xAxis}deg) rotateX(${yAxis}deg)`;
+    });
+
+    document.addEventListener('mouseleave', () => {
+      card.style.transform = `rotateY(0deg) rotateX(0deg)`;
+    });
+
+    // Create background floating symbols
+    const heartsContainer = document.getElementById('heartsContainer');
+    const heartSymbols = ['💖', '🌸', '✨', '💕', '🌷'];
+
+    for (let i = 0; i < 28; i++) {
+      const heart = document.createElement('div');
+      heart.classList.add('heart-particle');
+      heart.innerText = heartSymbols[Math.floor(Math.random() * heartSymbols.length)];
+      heart.style.left = Math.random() * 100 + 'vw';
+      heart.style.animationDuration = (Math.random() * 4 + 6) + 's';
+      heart.style.animationDelay = Math.random() * 6 + 's';
+      heart.style.fontSize = (Math.random() * 14 + 16) + 'px';
+      heartsContainer.appendChild(heart);
+    }
+
+    // Paragraphs written with your requested details
+    const letterParagraphs = [
+      "I really like you. I've wanted to tell you this for a very long time, but I never got the courage until now.",
+      "Take your time for it—I can completely understand your responsibilities and priorities.",
+      "Even if it's a no, there is absolutely no problem for me—I'd still love to just stay great friends."
+    ];
+
+    function animateWords() {
+      const container = document.getElementById("typedMessage");
+      let totalDelay = 0;
+
+      letterParagraphs.forEach((paragraphText) => {
+        const p = document.createElement('p');
+        p.style.marginBottom = "12px";
+        
+        const words = paragraphText.split(' ');
+        words.forEach((wordText) => {
+          const span = document.createElement('span');
+          span.classList.add('word');
+          span.innerText = wordText + ' ';
+          span.style.animationDelay = `${totalDelay}s`;
+          p.appendChild(span);
+          totalDelay += 0.07;
+        });
+
+        container.appendChild(p);
+      });
+
+      // Show Signature and Action Buttons
+      setTimeout(() => {
+        document.getElementById("signature").classList.add('show');
+        document.getElementById("actionButtons").classList.add('show');
+      }, totalDelay * 1000 + 200);
+    }
+
+    // View Transition
+    function showLetter() {
+      const answer = document.getElementById('answerBox').value.trim();
+      
+      if (answer === "") {
+        alert("Please write a quick response first! 😊");
+        return;
+      }
+
+      // Background audio
+      const audio = document.getElementById('bgMusic');
+      audio.volume = 0.3;
+      audio.play().catch(() => {});
+
+      // Hide Question section
+      const questionStep = document.getElementById('questionStep');
+      questionStep.style.transition = "opacity 0.4s ease, transform 0.4s ease";
+      questionStep.style.opacity = "0";
+      questionStep.style.transform = "translateY(-20px)";
+
+      setTimeout(() => {
+        questionStep.style.display = 'none';
+
+        // Display Her Answer
+        document.getElementById('userResponseDisplay').innerText = `You said: "${answer}"`;
+
+        // Show Secret Letter
+        const letterStep = document.getElementById('letterStep');
+        letterStep.style.display = 'block';
+        
+        setTimeout(() => {
+          letterStep.classList.add('show');
+          animateWords();
+        }, 50);
+
+        // Confetti Burst
+        confetti({
+          particleCount: 100,
+          spread: 80,
+          origin: { y: 0.6 },
+          colors: ['#ff416c', '#ff4b2b', '#28a745', '#ffffff']
+        });
+      }, 400);
+    }
+  </script>
+</body>
+</html>
